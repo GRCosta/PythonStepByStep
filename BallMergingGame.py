@@ -7,7 +7,7 @@ pygame.init()
 
 # Screen dimensions
 SCREEN_WIDTH = 800
-SCREEN_HEIGHT = 900
+SCREEN_HEIGHT = 1000
 PLAY_AREA_WIDTH = 600
 PLAY_AREA_HEIGHT = 750
 
@@ -47,16 +47,16 @@ def main():
         # Draw the play area
         pygame.draw.rect(
             screen, GRAY, 
-            ((SCREEN_WIDTH - PLAY_AREA_WIDTH) // 2, SCREEN_HEIGHT - PLAY_AREA_HEIGHT - 50, PLAY_AREA_WIDTH, PLAY_AREA_HEIGHT)
+            ((SCREEN_WIDTH - PLAY_AREA_WIDTH) // 2, SCREEN_HEIGHT - PLAY_AREA_HEIGHT - 150, PLAY_AREA_WIDTH, PLAY_AREA_HEIGHT)
         )
 
         # Draw the balls at the bottom
         ball_start_x = (SCREEN_WIDTH - sum(int(ball["radius"] * 10 * 2 + 2) for ball in BALLS)) // 2
-        ball_y = SCREEN_HEIGHT - 25
+        ball_y = SCREEN_HEIGHT - 10  # Position balls to touch the bottom of the screen
         current_x = ball_start_x
         for ball in BALLS:
             radius_scaled = int(ball["radius"] * 10)
-            pygame.draw.circle(screen, ball["color"], (current_x + radius_scaled, ball_y), radius_scaled)
+            pygame.draw.circle(screen, ball["color"], (current_x + radius_scaled, ball_y - radius_scaled), radius_scaled)
             current_x += radius_scaled * 2 + 2  # Space by radius * 2 plus a buffer of 2
 
         # Draw the score and high score
