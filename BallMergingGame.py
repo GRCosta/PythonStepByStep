@@ -27,9 +27,15 @@ pygame.display.set_caption("Ball Merging Game")
 # Clock to control the frame rate
 clock = pygame.time.Clock()
 
+# Fonts
+font = pygame.font.SysFont(None, 36)
+
 # Main game loop placeholder
 def main():
     running = True
+    score = 0
+    high_score = 0
+
     while running:
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
@@ -43,6 +49,18 @@ def main():
             screen, GRAY, 
             ((SCREEN_WIDTH - PLAY_AREA_WIDTH) // 2, SCREEN_HEIGHT - PLAY_AREA_HEIGHT, PLAY_AREA_WIDTH, PLAY_AREA_HEIGHT)
         )
+
+        # Draw the balls at the bottom
+        ball_start_x = (SCREEN_WIDTH - (len(BALLS) * 50)) // 2
+        ball_y = SCREEN_HEIGHT - 25
+        for i, ball in enumerate(BALLS):
+            pygame.draw.circle(screen, ball["color"], (ball_start_x + i * 5, ball_y), int(ball["radius"] * 5))
+
+        # Draw the score and high score
+        score_text = font.render(f"Score: {score}", True, BLACK)
+        high_score_text = font.render(f"High Score: {high_score}", True, BLACK)
+        screen.blit(score_text, (20, 20))
+        screen.blit(high_score_text, (SCREEN_WIDTH - high_score_text.get_width() - 20, 20))
 
         # Update the display
         pygame.display.flip()
