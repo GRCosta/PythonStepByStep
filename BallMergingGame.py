@@ -1,5 +1,6 @@
 import pygame
 import sys
+from pygame.colordict import THECOLORS
 
 # Initialize Pygame
 pygame.init()
@@ -14,6 +15,10 @@ PLAY_AREA_HEIGHT = 750
 WHITE = (255, 255, 255)
 BLACK = (0, 0, 0)
 GRAY = (200, 200, 200)
+
+# Ball colors and radii
+BALL_COLORS = ['blue4', 'brown1', 'brown3', 'burlywood1', 'yellow1', 'violetred4', 'tan1', 'red1', 'yellow2', 'yellowgreen', 'limegreen']
+BALLS = [{"color": THECOLORS[color], "radius": (i + 1) * 0.5} for i, color in enumerate(BALL_COLORS)]
 
 # Set up the screen
 screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
