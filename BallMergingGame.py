@@ -49,6 +49,17 @@ def initialize_game():
     }
     return ball
 
+def reset_ball(ball):
+    """Reset the ball to prepare for the next drop."""
+    selected_ball = random.choice(BALLS)
+    ball.update({
+        "color": selected_ball["color"],
+        "radius": int(selected_ball["radius"] * 10),
+        "x": SCREEN_WIDTH // 2,
+        "y": SCREEN_HEIGHT - PLAY_AREA_HEIGHT - 200 - int(selected_ball["radius"] * 10),
+        "falling": False
+    })
+
 def handle_events(ball):
     """Handle player input and system events."""
     for event in pygame.event.get():
@@ -62,6 +73,15 @@ def handle_events(ball):
         elif event.type == pygame.MOUSEBUTTONDOWN and not ball["falling"]:
             ball["falling"] = True  # Start the ball falling
     return True
+
+def draw_balls_row():
+    """Draw the row of balls at the bottom for reference."""
+    x_start = 20
+    y_position = SCREEN_HEIGHT - 100
+    for ball in BALLS:
+        radius = int(ball["radius"] * 10)
+        pygame.draw.circle(screen, ball["color"], (x_start + radius + 2, y_position), radius)
+        x_start += 2 * radius + 10
 
 def main():
     running = True
@@ -84,9 +104,15 @@ def main():
             ((SCREEN_WIDTH - PLAY_AREA_WIDTH) // 2, SCREEN_HEIGHT - PLAY_AREA_HEIGHT - 200, PLAY_AREA_WIDTH, PLAY_AREA_HEIGHT)
         )
 
+        # Draw the row of balls
+        draw_balls_row()
+
         # Update the ball's position (simulate falling)
-        if ball["falling"] and ball["y"] < SCREEN_HEIGHT - 200 - ball["radius"]:
-            ball["y"] += 5  # Falling speed
+        if ball["falling"]:
+            if ball["y"] < SCREEN_HEIGHT - 200 - ball["radius"]:
+                ball["y"] += 5  # Falling speed
+            else:
+                reset_ball(ball)  # Reset the ball once it reaches the bottom
 
         # Draw the ball
         pygame.draw.circle(screen, ball["color"], (ball["x"], ball["y"]), ball["radius"])
