@@ -18,8 +18,13 @@ BLACK = (0, 0, 0)
 GRAY = (200, 200, 200)
 
 # Ball colors and radii
-BALL_COLORS = ['blue4', 'brown1', 'brown3', 'burlywood1', 'yellow1', 'violetred4', 'tan1', 'red1', 'yellow2', 'yellowgreen', 'limegreen']
-BALLS = [{"color": THECOLORS[color], "radius": (i + 1) * 0.5} for i, color in enumerate(BALL_COLORS)]
+BALL_COLORS = [
+    'blue4', 'brown1', 'brown3', 'burlywood1', 'yellow1',
+    'violetred4', 'tan1', 'red1', 'yellow2', 'yellowgreen', 'limegreen'
+]
+BALLS = [
+    {"color": THECOLORS[color], "radius": (i + 1) * 0.5} for i, color in enumerate(BALL_COLORS)
+]
 
 # Set up the screen
 screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
@@ -39,11 +44,25 @@ def initialize_game():
         "color": selected_ball["color"],
         "radius": int(selected_ball["radius"] * 10),
         "x": SCREEN_WIDTH // 2,
-        "y": SCREEN_HEIGHT - PLAY_AREA_HEIGHT - 200 - int(selected_ball["radius"] * 10)
+        "y": SCREEN_HEIGHT - PLAY_AREA_HEIGHT - 200 - int(selected_ball["radius"] * 10),
+        "falling": False  # Indicates whether the ball is falling
     }
     return ball
 
-# Main game loop placeholder
+def handle_events(ball):
+    """Handle player input and system events."""
+    for event in pygame.event.get():
+        if event.type == pygame.QUIT:
+            return False  # Signal to exit the game
+        elif event.type == pygame.KEYDOWN and not ball["falling"]:
+            if event.key == pygame.K_LEFT:
+                ball["x"] -= 10  # Move left
+            elif event.key == pygame.K_RIGHT:
+                ball["x"] += 10  # Move right
+        elif event.type == pygame.MOUSEBUTTONDOWN and not ball["falling"]:
+            ball["falling"] = True  # Start the ball falling
+    return True
+
 def main():
     running = True
     score = 0
@@ -53,12 +72,8 @@ def main():
     ball = initialize_game()
 
     while running:
-        for event in pygame.event.get():
-            if event.type == pygame.QUIT:
-                running = False
-            elif event.type == pygame.MOUSEBUTTONDOWN:
-                # Set the ball's x position to the mouse's x position
-                ball["x"] = event.pos[0]
+        # Handle events
+        running = handle_events(ball)
 
         # Clear the screen
         screen.fill(WHITE)
@@ -70,7 +85,7 @@ def main():
         )
 
         # Update the ball's position (simulate falling)
-        if ball["y"] < SCREEN_HEIGHT - 200 - ball["radius"]:
+        if ball["falling"] and ball["y"] < SCREEN_HEIGHT - 200 - ball["radius"]:
             ball["y"] += 5  # Falling speed
 
         # Draw the ball
