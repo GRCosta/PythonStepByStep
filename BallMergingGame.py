@@ -40,7 +40,7 @@ clock = pygame.time.Clock()
 font = pygame.font.SysFont(None, 36)
 
 # List to store all dropped balls
-dropped_balls = []
+previous_balls = []
 
 def initialize_game():
     """Initialize the game state."""
@@ -103,8 +103,38 @@ def draw_balls_row():
 
 def draw_dropped_balls():
     """Draw all balls that have been dropped into the play area."""
-    for dropped_ball in dropped_balls:
+    for dropped_ball in previous_balls:
         pygame.draw.circle(screen, dropped_ball["color"], (dropped_ball["x"], dropped_ball["y"]), dropped_ball["radius"])
+
+def update_game_state():
+    """Update the game state by checking for merges and updating positions."""
+    merged = []
+    for i, ball1 in enumerate(previous_balls):
+        for j, ball2 in enumerate(previous_balls):
+            if i != j and check_ball_merge(ball1, ball2):
+                # Merge logic: create a new ball with the next radius
+                new_radius = ball1["radius"] + 5
+                if new_radius <= 50:  # Limit the maximum radius
+                    new_ball = {
+                        "color": THECOLORS[BALL_COLORS[(new_radius // 5) - 1]],
+                        "radius": new_radius,
+                        "x": (ball1["x"] + ball2["x"]) // 2,
+                        "y": (ball1["y"] + ball2["y"]) // 2
+                    }
+                    merged.append(new_ball)
+                # Mark the balls as processed
+                previous_balls[i] = None
+                previous_balls[j] = None
+                break
+    # Remove merged balls and add new balls
+    global merged_balls
+    merged_balls = [ball for ball in previous_balls if ball is not None]
+    merged_balls.extend(merged)
+
+def check_ball_merge(ball1, ball2):
+    """Check if two balls should merge based on their proximity and radius."""
+    distance = ((ball1["x"] - ball2["x"]) ** 2 + (ball1["y"] - ball2["y"]) ** 2) ** 0.5
+    return distance < (ball1["radius"] + ball2["radius"] + 2) and ball1["radius"] == ball2["radius"]
 
 def main():
     running = True
@@ -138,8 +168,11 @@ def main():
             if ball["y"] < SCREEN_HEIGHT - 200 - ball["radius"]:
                 ball["y"] += 5  # Falling speed
             else:
-                dropped_balls.append(ball.copy())  # Save the ball's final position
+                previous_balls.append(ball.copy())  # Save the ball's final position
                 reset_ball(ball)  # Reset the ball for the next drop
+
+        # Update game state
+        update_game_state()
 
         # Draw the current falling ball
         pygame.draw.circle(screen, ball["color"], (ball["x"], ball["y"]), ball["radius"])
