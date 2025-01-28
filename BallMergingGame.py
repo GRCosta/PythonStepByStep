@@ -68,14 +68,26 @@ def reset_ball(ball):
 
 def handle_events(ball):
     """Handle player input and system events."""
+    keys = pygame.key.get_pressed()
+    if keys[pygame.K_LEFT] and not ball["falling"]:
+        ball["x"] -= 5  # Continuous movement left
+        # Restrict ball to stay inside the left boundary of the play area
+        min_x = (SCREEN_WIDTH - PLAY_AREA_WIDTH) // 2 + ball["radius"]
+        if ball["x"] < min_x:
+            ball["x"] = min_x
+    if keys[pygame.K_RIGHT] and not ball["falling"]:
+        ball["x"] += 5  # Continuous movement right
+        # Restrict ball to stay inside the right boundary of the play area
+        max_x = (SCREEN_WIDTH + PLAY_AREA_WIDTH) // 2 - ball["radius"]
+        if ball["x"] > max_x:
+            ball["x"] = max_x
+    
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             return False  # Signal to exit the game
-        elif event.type == pygame.KEYDOWN and not ball["falling"]:
-            if event.key == pygame.K_LEFT:
-                ball["x"] -= 10  # Move left
-            elif event.key == pygame.K_RIGHT:
-                ball["x"] += 10  # Move right
+        elif event.type == pygame.KEYDOWN:
+            if event.key == pygame.K_SPACE and not ball["falling"]:
+                ball["falling"] = True  # Start the ball falling
         elif event.type == pygame.MOUSEBUTTONDOWN and not ball["falling"]:
             ball["falling"] = True  # Start the ball falling
     return True
