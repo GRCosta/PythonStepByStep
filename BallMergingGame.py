@@ -26,6 +26,9 @@ BALLS = [
     {"color": THECOLORS[color], "radius": (i + 1) * 0.5} for i, color in enumerate(BALL_COLORS)
 ]
 
+# Limit balls to first 5 radii for dropping
+DROPPABLE_BALLS = BALLS[:5]
+
 # Set up the screen
 screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
 pygame.display.set_caption("Ball Merging Game")
@@ -36,10 +39,13 @@ clock = pygame.time.Clock()
 # Fonts
 font = pygame.font.SysFont(None, 36)
 
+# List to store all dropped balls
+dropped_balls = []
+
 def initialize_game():
     """Initialize the game state."""
     # Select a random ball to drop
-    selected_ball = random.choice(BALLS)
+    selected_ball = random.choice(DROPPABLE_BALLS)
     ball = {
         "color": selected_ball["color"],
         "radius": int(selected_ball["radius"] * 10),
@@ -51,7 +57,7 @@ def initialize_game():
 
 def reset_ball(ball):
     """Reset the ball to prepare for the next drop."""
-    selected_ball = random.choice(BALLS)
+    selected_ball = random.choice(DROPPABLE_BALLS)
     ball.update({
         "color": selected_ball["color"],
         "radius": int(selected_ball["radius"] * 10),
@@ -83,6 +89,11 @@ def draw_balls_row():
         pygame.draw.circle(screen, ball["color"], (x_start + radius + 2, y_position), radius)
         x_start += 2 * radius + 10
 
+def draw_dropped_balls():
+    """Draw all balls that have been dropped into the play area."""
+    for dropped_ball in dropped_balls:
+        pygame.draw.circle(screen, dropped_ball["color"], (dropped_ball["x"], dropped_ball["y"]), dropped_ball["radius"])
+
 def main():
     running = True
     score = 0
@@ -107,14 +118,18 @@ def main():
         # Draw the row of balls
         draw_balls_row()
 
+        # Draw dropped balls
+        draw_dropped_balls()
+
         # Update the ball's position (simulate falling)
         if ball["falling"]:
             if ball["y"] < SCREEN_HEIGHT - 200 - ball["radius"]:
                 ball["y"] += 5  # Falling speed
             else:
-                reset_ball(ball)  # Reset the ball once it reaches the bottom
+                dropped_balls.append(ball.copy())  # Save the ball's final position
+                reset_ball(ball)  # Reset the ball for the next drop
 
-        # Draw the ball
+        # Draw the current falling ball
         pygame.draw.circle(screen, ball["color"], (ball["x"], ball["y"]), ball["radius"])
 
         # Draw the score and high score
