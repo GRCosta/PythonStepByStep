@@ -1,5 +1,6 @@
 import pygame
 import sys
+import random
 from pygame.colordict import THECOLORS
 
 # Initialize Pygame
@@ -30,16 +31,34 @@ clock = pygame.time.Clock()
 # Fonts
 font = pygame.font.SysFont(None, 36)
 
+def initialize_game():
+    """Initialize the game state."""
+    # Select a random ball to drop
+    selected_ball = random.choice(BALLS)
+    ball = {
+        "color": selected_ball["color"],
+        "radius": int(selected_ball["radius"] * 10),
+        "x": SCREEN_WIDTH // 2,
+        "y": SCREEN_HEIGHT - PLAY_AREA_HEIGHT - 200 - int(selected_ball["radius"] * 10)
+    }
+    return ball
+
 # Main game loop placeholder
 def main():
     running = True
     score = 0
     high_score = 0
 
+    # Initialize game state
+    ball = initialize_game()
+
     while running:
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 running = False
+            elif event.type == pygame.MOUSEBUTTONDOWN:
+                # Set the ball's x position to the mouse's x position
+                ball["x"] = event.pos[0]
 
         # Clear the screen
         screen.fill(WHITE)
@@ -47,17 +66,15 @@ def main():
         # Draw the play area
         pygame.draw.rect(
             screen, GRAY, 
-            ((SCREEN_WIDTH - PLAY_AREA_WIDTH) // 2, SCREEN_HEIGHT - PLAY_AREA_HEIGHT - 150, PLAY_AREA_WIDTH, PLAY_AREA_HEIGHT)
+            ((SCREEN_WIDTH - PLAY_AREA_WIDTH) // 2, SCREEN_HEIGHT - PLAY_AREA_HEIGHT - 200, PLAY_AREA_WIDTH, PLAY_AREA_HEIGHT)
         )
 
-        # Draw the balls at the bottom
-        ball_start_x = (SCREEN_WIDTH - sum(int(ball["radius"] * 10 * 2 + 2) for ball in BALLS)) // 2
-        ball_y = SCREEN_HEIGHT - 10  # Position balls to touch the bottom of the screen
-        current_x = ball_start_x
-        for ball in BALLS:
-            radius_scaled = int(ball["radius"] * 10)
-            pygame.draw.circle(screen, ball["color"], (current_x + radius_scaled, ball_y - radius_scaled), radius_scaled)
-            current_x += radius_scaled * 2 + 2  # Space by radius * 2 plus a buffer of 2
+        # Update the ball's position (simulate falling)
+        if ball["y"] < SCREEN_HEIGHT - 200 - ball["radius"]:
+            ball["y"] += 5  # Falling speed
+
+        # Draw the ball
+        pygame.draw.circle(screen, ball["color"], (ball["x"], ball["y"]), ball["radius"])
 
         # Draw the score and high score
         score_text = font.render(f"Score: {score}", True, BLACK)
