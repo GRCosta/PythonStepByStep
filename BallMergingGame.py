@@ -145,6 +145,50 @@ def check_ball_merge(ball1, ball2):
     distance = ((ball1["x"] - ball2["x"]) ** 2 + (ball1["y"] - ball2["y"]) ** 2) ** 0.5
     return distance < (ball1["radius"] + ball2["radius"] + 2) and ball1["radius"] == ball2["radius"]
 
+# Store previous states to track changes
+last_droppable_state = []
+last_all_balls_state = []
+last_previous_balls_state = {}
+
+def print_ball_states():
+    """Print the color and quantity of balls in different lists only if there are changes."""
+    global last_droppable_state, last_all_balls_state, last_previous_balls_state
+
+    # Get the current states
+    current_droppable_state = [(BALL_COLORS[BALLS.index(ball)], ball["radius"]) for ball in DROPPABLE_BALLS]
+    current_all_balls_state = [(BALL_COLORS[BALLS.index(ball)], ball["radius"]) for ball in BALLS]
+
+    # Count occurrences of each ball color in previous_balls
+    current_previous_balls_state = {}
+    for ball in previous_balls:
+        color_name = [name for name, color in THECOLORS.items() if color == ball["color"]]
+        color_name = color_name[0] if color_name else "Unknown"
+        current_previous_balls_state[color_name] = current_previous_balls_state.get(color_name, 0) + 1
+
+    # Print only if there are changes
+    if current_droppable_state != last_droppable_state:
+        print("DROPPABLE_BALLS:")
+        for color, radius in current_droppable_state:
+            print(f"- Color: {color}, Radius: {radius}")
+        last_droppable_state = current_droppable_state  # Update state tracking
+
+    if current_all_balls_state != last_all_balls_state:
+        print("\nBALLS (All Possible Balls):")
+        for color, radius in current_all_balls_state:
+            print(f"- Color: {color}, Radius: {radius}")
+        last_all_balls_state = current_all_balls_state  # Update state tracking
+
+    if current_previous_balls_state != last_previous_balls_state:
+        print("\nPREVIOUS_BALLS (Balls in Play Area):")
+        if current_previous_balls_state:
+            for color, count in current_previous_balls_state.items():
+                print(f"- Color: {color}, Quantity: {count}")
+        else:
+            print("No balls currently in play area.")
+        last_previous_balls_state = current_previous_balls_state 
+
+
+
 def main():
     running = True
     score = 0
@@ -152,7 +196,7 @@ def main():
 
     # Initialize game state
     ball = initialize_game()
-
+    print_ball_states()
     while running:
         # Handle events
         running = handle_events(ball)
@@ -180,6 +224,7 @@ def main():
                 previous_balls.append(ball.copy())  # Save the ball's final position
                 reset_ball(ball)  # Reset the ball for the next drop
 
+        print_ball_states()
         # Update game state
         update_game_state()
 
@@ -197,6 +242,7 @@ def main():
 
         # Limit the frame rate to 60 FPS
         clock.tick(60)
+        print_ball_states()
 
     pygame.quit()
     sys.exit()
