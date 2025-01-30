@@ -109,9 +109,17 @@ def draw_dropped_balls():
 def update_game_state():
     """Update the game state by checking for merges and updating positions."""
     merged = []
-    for i, ball1 in enumerate(previous_balls):
-        for j, ball2 in enumerate(previous_balls):
-            if i != j and check_ball_merge(ball1, ball2):
+    to_remove = set()  # Store indexes of merged balls
+
+    for i in range(len(previous_balls)):
+        for j in range(i + 1, len(previous_balls)):  # Avoid duplicate checks
+            if i in to_remove or j in to_remove:
+                continue  # Skip if the ball is already merged
+
+            ball1 = previous_balls[i]
+            ball2 = previous_balls[j]
+
+            if ball1 is not None and ball2 is not None and check_ball_merge(ball1, ball2):
                 # Merge logic: create a new ball with the next radius
                 new_radius = ball1["radius"] + 5
                 if new_radius <= 50:  # Limit the maximum radius
@@ -122,15 +130,16 @@ def update_game_state():
                         "y": (ball1["y"] + ball2["y"]) // 2
                     }
                     merged.append(new_ball)
-                # Mark the balls as processed
-                previous_balls[i] = None
-                previous_balls[j] = None
-                break
-    # Remove merged balls and add new balls
-    global merged_balls
-    merged_balls = [ball for ball in previous_balls if ball is not None]
-    merged_balls.extend(merged)
 
+                # Mark the balls as processed
+                to_remove.add(i)
+                to_remove.add(j)
+
+    # Remove merged balls safely
+    global merged_balls
+    merged_balls = [ball for idx, ball in enumerate(previous_balls) if idx not in to_remove]
+    merged_balls.extend(merged)
+    
 def check_ball_merge(ball1, ball2):
     """Check if two balls should merge based on their proximity and radius."""
     distance = ((ball1["x"] - ball2["x"]) ** 2 + (ball1["y"] - ball2["y"]) ** 2) ** 0.5
