@@ -40,18 +40,18 @@ clock = pygame.time.Clock()
 font = pygame.font.SysFont(None, 36)
 
 # List to store all dropped balls
-previous_balls = []
+global stored_balls
+stored_balls = []
 
 def initialize_game():
     """Initialize the game state."""
-    # Select a random ball to drop
     selected_ball = random.choice(DROPPABLE_BALLS)
     ball = {
         "color": selected_ball["color"],
         "radius": int(selected_ball["radius"] * 10),
         "x": SCREEN_WIDTH // 2,
         "y": SCREEN_HEIGHT - PLAY_AREA_HEIGHT - 200 - int(selected_ball["radius"] * 10),
-        "falling": False  # Indicates whether the ball is falling
+        "falling": False
     }
     return ball
 
@@ -70,26 +70,24 @@ def handle_events(ball):
     """Handle player input and system events."""
     keys = pygame.key.get_pressed()
     if keys[pygame.K_LEFT] and not ball["falling"]:
-        ball["x"] -= 5  # Continuous movement left
-        # Restrict ball to stay inside the left boundary of the play area
+        ball["x"] -= 5
         min_x = (SCREEN_WIDTH - PLAY_AREA_WIDTH) // 2 + ball["radius"]
         if ball["x"] < min_x:
             ball["x"] = min_x
     if keys[pygame.K_RIGHT] and not ball["falling"]:
-        ball["x"] += 5  # Continuous movement right
-        # Restrict ball to stay inside the right boundary of the play area
+        ball["x"] += 5
         max_x = (SCREEN_WIDTH + PLAY_AREA_WIDTH) // 2 - ball["radius"]
         if ball["x"] > max_x:
             ball["x"] = max_x
     
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
-            return False  # Signal to exit the game
+            return False
         elif event.type == pygame.KEYDOWN:
             if event.key == pygame.K_SPACE and not ball["falling"]:
-                ball["falling"] = True  # Start the ball falling
+                ball["falling"] = True
         elif event.type == pygame.MOUSEBUTTONDOWN and not ball["falling"]:
-            ball["falling"] = True  # Start the ball falling
+            ball["falling"] = True
     return True
 
 def draw_balls_row():
@@ -103,26 +101,24 @@ def draw_balls_row():
 
 def draw_dropped_balls():
     """Draw all balls that have been dropped into the play area."""
-    for dropped_ball in previous_balls:
+    for dropped_ball in stored_balls:
         pygame.draw.circle(screen, dropped_ball["color"], (dropped_ball["x"], dropped_ball["y"]), dropped_ball["radius"])
 
 def update_game_state():
     """Update the game state by checking for merges and updating positions."""
+    global stored_balls
     merged = []
-    to_remove = set()  # Store indexes of merged balls
+    to_remove = set()
 
-    for i in range(len(previous_balls)):
-        for j in range(i + 1, len(previous_balls)):  # Avoid duplicate checks
+    for i in range(len(stored_balls)):
+        for j in range(i + 1, len(stored_balls)):
             if i in to_remove or j in to_remove:
-                continue  # Skip if the ball is already merged
-
-            ball1 = previous_balls[i]
-            ball2 = previous_balls[j]
-
-            if ball1 is not None and ball2 is not None and check_ball_merge(ball1, ball2):
-                # Merge logic: create a new ball with the next radius
+                continue
+            ball1 = stored_balls[i]
+            ball2 = stored_balls[j]
+            if check_ball_merge(ball1, ball2):
                 new_radius = ball1["radius"] + 5
-                if new_radius <= 50:  # Limit the maximum radius
+                if new_radius <= 50:
                     new_ball = {
                         "color": THECOLORS[BALL_COLORS[(new_radius // 5) - 1]],
                         "radius": new_radius,
@@ -130,120 +126,38 @@ def update_game_state():
                         "y": (ball1["y"] + ball2["y"]) // 2
                     }
                     merged.append(new_ball)
-
-                # Mark the balls as processed
                 to_remove.add(i)
                 to_remove.add(j)
 
-    # Remove merged balls safely
-    global merged_balls
-    merged_balls = [ball for idx, ball in enumerate(previous_balls) if idx not in to_remove]
-    merged_balls.extend(merged)
-    
+    stored_balls = [ball for idx, ball in enumerate(stored_balls) if idx not in to_remove]
+    stored_balls.extend(merged)
+
 def check_ball_merge(ball1, ball2):
     """Check if two balls should merge based on their proximity and radius."""
     distance = ((ball1["x"] - ball2["x"]) ** 2 + (ball1["y"] - ball2["y"]) ** 2) ** 0.5
     return distance < (ball1["radius"] + ball2["radius"] + 2) and ball1["radius"] == ball2["radius"]
 
-# Store previous states to track changes
-last_droppable_state = []
-last_all_balls_state = []
-last_previous_balls_state = {}
-
-def print_ball_states():
-    """Print the color and quantity of balls in different lists only if there are changes."""
-    global last_droppable_state, last_all_balls_state, last_previous_balls_state
-
-    # Get the current states
-    current_droppable_state = [(BALL_COLORS[BALLS.index(ball)], ball["radius"]) for ball in DROPPABLE_BALLS]
-    current_all_balls_state = [(BALL_COLORS[BALLS.index(ball)], ball["radius"]) for ball in BALLS]
-
-    # Count occurrences of each ball color in previous_balls
-    current_previous_balls_state = {}
-    for ball in previous_balls:
-        color_name = [name for name, color in THECOLORS.items() if color == ball["color"]]
-        color_name = color_name[0] if color_name else "Unknown"
-        current_previous_balls_state[color_name] = current_previous_balls_state.get(color_name, 0) + 1
-
-    # Print only if there are changes
-    if current_droppable_state != last_droppable_state:
-        print("DROPPABLE_BALLS:")
-        for color, radius in current_droppable_state:
-            print(f"- Color: {color}, Radius: {radius}")
-        last_droppable_state = current_droppable_state  # Update state tracking
-
-    if current_all_balls_state != last_all_balls_state:
-        print("\nBALLS (All Possible Balls):")
-        for color, radius in current_all_balls_state:
-            print(f"- Color: {color}, Radius: {radius}")
-        last_all_balls_state = current_all_balls_state  # Update state tracking
-
-    if current_previous_balls_state != last_previous_balls_state:
-        print("\nPREVIOUS_BALLS (Balls in Play Area):")
-        if current_previous_balls_state:
-            for color, count in current_previous_balls_state.items():
-                print(f"- Color: {color}, Quantity: {count}")
-        else:
-            print("No balls currently in play area.")
-        last_previous_balls_state = current_previous_balls_state 
-
-
-
 def main():
     running = True
     score = 0
     high_score = 0
-
-    # Initialize game state
     ball = initialize_game()
-    print_ball_states()
     while running:
-        # Handle events
         running = handle_events(ball)
-
-        # Clear the screen
         screen.fill(WHITE)
-
-        # Draw the play area
-        pygame.draw.rect(
-            screen, GRAY, 
-            ((SCREEN_WIDTH - PLAY_AREA_WIDTH) // 2, SCREEN_HEIGHT - PLAY_AREA_HEIGHT - 200, PLAY_AREA_WIDTH, PLAY_AREA_HEIGHT)
-        )
-
-        # Draw the row of balls
+        pygame.draw.rect(screen, GRAY, ((SCREEN_WIDTH - PLAY_AREA_WIDTH) // 2, SCREEN_HEIGHT - PLAY_AREA_HEIGHT - 200, PLAY_AREA_WIDTH, PLAY_AREA_HEIGHT))
         draw_balls_row()
-
-        # Draw dropped balls
         draw_dropped_balls()
-
-        # Update the ball's position (simulate falling)
         if ball["falling"]:
             if ball["y"] < SCREEN_HEIGHT - 200 - ball["radius"]:
-                ball["y"] += 5  # Falling speed
+                ball["y"] += 5
             else:
-                previous_balls.append(ball.copy())  # Save the ball's final position
-                reset_ball(ball)  # Reset the ball for the next drop
-
-        print_ball_states()
-        # Update game state
+                stored_balls.append(ball.copy())
+                reset_ball(ball)
         update_game_state()
-
-        # Draw the current falling ball
         pygame.draw.circle(screen, ball["color"], (ball["x"], ball["y"]), ball["radius"])
-
-        # Draw the score and high score
-        score_text = font.render(f"Score: {score}", True, BLACK)
-        high_score_text = font.render(f"High Score: {high_score}", True, BLACK)
-        screen.blit(score_text, (20, 20))
-        screen.blit(high_score_text, (SCREEN_WIDTH - high_score_text.get_width() - 20, 20))
-
-        # Update the display
         pygame.display.flip()
-
-        # Limit the frame rate to 60 FPS
         clock.tick(60)
-        print_ball_states()
-
     pygame.quit()
     sys.exit()
 
