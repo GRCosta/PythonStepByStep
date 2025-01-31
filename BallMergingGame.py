@@ -145,7 +145,12 @@ def main():
     while running:
         running = handle_events(ball)
         screen.fill(WHITE)
-        pygame.draw.rect(screen, GRAY, ((SCREEN_WIDTH - PLAY_AREA_WIDTH) // 2, SCREEN_HEIGHT - PLAY_AREA_HEIGHT - 200, PLAY_AREA_WIDTH, PLAY_AREA_HEIGHT))
+        pygame.draw.rect(screen, GRAY, ((SCREEN_WIDTH - PLAY_AREA_WIDTH) // 2, SCREEN_HEIGHT - PLAY_AREA_HEIGHT - 150, PLAY_AREA_WIDTH, PLAY_AREA_HEIGHT))
+        score_text = font.render(f"Score: {score}", True, BLACK)
+        high_score_text = font.render(f"High Score: {high_score}", True, BLACK)
+        screen.blit(score_text, (20, 20))
+        screen.blit(high_score_text, (SCREEN_WIDTH - 200, 20))
+
         draw_balls_row()
         draw_dropped_balls()
         if ball["falling"]:

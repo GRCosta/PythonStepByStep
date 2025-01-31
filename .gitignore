@@ -169,3 +169,7 @@ cython_debug/
 
 # PyPI configuration file
 .pypirc
+
+
+# Special file to be ignored - Gabarito
+Gabarito.py
