@@ -123,7 +123,7 @@ def update_game_state():
                         "color": THECOLORS[BALL_COLORS[(new_radius // 5) - 1]],
                         "radius": new_radius,
                         "x": (ball1["x"] + ball2["x"]) // 2,
-                        "y": (ball1["y"] + ball2["y"]) // 2 - 1
+                        "y": (ball1["y"] + ball2["y"]) // 2 - new_radius - 1
                     }
                     merged.append(new_ball)
                 to_remove.add(i)
