@@ -51,7 +51,8 @@ def initialize_game():
         "radius": int(selected_ball["radius"] * 10),
         "x": SCREEN_WIDTH // 2,
         "y": SCREEN_HEIGHT - PLAY_AREA_HEIGHT - 200 - int(selected_ball["radius"] * 10),
-        "falling": False
+        "falling": False,
+        "velocity_y": 0
     }
     return ball
 
@@ -63,7 +64,8 @@ def reset_ball(ball):
         "radius": int(selected_ball["radius"] * 10),
         "x": SCREEN_WIDTH // 2,
         "y": SCREEN_HEIGHT - PLAY_AREA_HEIGHT - 200 - int(selected_ball["radius"] * 10),
-        "falling": False
+        "falling": False,
+        "velocity_y": 0
     })
 
 def handle_events(ball):
@@ -86,8 +88,10 @@ def handle_events(ball):
         elif event.type == pygame.KEYDOWN:
             if event.key == pygame.K_SPACE and not ball["falling"]:
                 ball["falling"] = True
+                ball["velocity_y"] = 5
         elif event.type == pygame.MOUSEBUTTONDOWN and not ball["falling"]:
             ball["falling"] = True
+            ball["velocity_y"] = 5
     return True
 
 def draw_balls_row():
@@ -139,24 +143,19 @@ def check_ball_merge(ball1, ball2):
 
 def main():
     running = True
-    score = 0
-    high_score = 0
     ball = initialize_game()
     while running:
         running = handle_events(ball)
         screen.fill(WHITE)
         pygame.draw.rect(screen, GRAY, ((SCREEN_WIDTH - PLAY_AREA_WIDTH) // 2, SCREEN_HEIGHT - PLAY_AREA_HEIGHT - 150, PLAY_AREA_WIDTH, PLAY_AREA_HEIGHT))
-        score_text = font.render(f"Score: {score}", True, BLACK)
-        high_score_text = font.render(f"High Score: {high_score}", True, BLACK)
-        screen.blit(score_text, (20, 20))
-        screen.blit(high_score_text, (SCREEN_WIDTH - 200, 20))
-
         draw_balls_row()
         draw_dropped_balls()
         if ball["falling"]:
-            if ball["y"] < SCREEN_HEIGHT - 200 - ball["radius"]:
-                ball["y"] += 5
-            else:
+            ball["velocity_y"] += 0.5
+            ball["y"] += ball["velocity_y"]
+            if ball["y"] >= SCREEN_HEIGHT - 200 - ball["radius"]:
+                ball["y"] = SCREEN_HEIGHT - 200 - ball["radius"]
+                ball["falling"] = False
                 stored_balls.append(ball.copy())
                 reset_ball(ball)
         update_game_state()
